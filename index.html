@@ -52,15 +52,6 @@
             z-index: 0;
         }
 
-        #UpperImage {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 1;
-        }
-
         #LogoImage {
             position: absolute;
             top: 20px;
@@ -68,6 +59,7 @@
             width: 90px;
             height: 130px;
             z-index: 9999;
+            animation: LogoAnimation 2s ease-out forwards;
         }
 
         #FooterBlock {
@@ -83,7 +75,7 @@
             color: #fff;
             margin-bottom: 1vh;
             letter-spacing: .15em;
-            animation: SlideRightTitle .5s ease-out forwards;
+            animation: TitleHintAnimation 2s ease-out forwards;
             opacity: 0;
         }
 
@@ -93,6 +85,7 @@
             opacity: 0.5;
             letter-spacing: .15em;
             max-width: 800px;
+            animation: HintAnimation 2s ease-out forwards;
         }
 
         #CenterLoadingBlock {
@@ -101,8 +94,8 @@
             left: 50%;
             transform: translate(-50%,-50%);
             z-index: 20;
-            width: 1050px;
-            max-width: 60%;
+            width: 60vw;
+            max-width: 1050px;
             min-width: 260px;
             text-align: center;
             color: #fff;
@@ -118,7 +111,7 @@
 
         #ProcessBar {
             position: relative;
-            width: 1050px;
+            width: 100%;
             height: 36.5px;
             border-radius: 8px;
             background: rgba(0, 0, 0, 0.68);
@@ -138,21 +131,18 @@
             background: #948BFE;
             width: 0%;
             transition: width 0.15s linear;
-            drop-shadow: 0 0 3px rgba(0,0,0,.45)
+            filter: drop-shadow(0 0 3px rgba(0,0,0,.45));
         }
 
         #ProcessBarCharacterIcon {
             position: absolute;
-            z-index: 999;
+            z-index: 9999;
             pointer-events: none;
-            top: 52.5%;
-            transform: translateY(-50%);
-            left: 49.5%;
-
-            margin-left: calc(1050px / 2 - 63px);
-
             width: 126px;
             height: 74px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
         #AddonCount {
@@ -166,18 +156,36 @@
             to { filter: drop-shadow(0 0 0px rgba(33,45,44,0)); }
         }
 
-        @keyframes SlideRightTitle {
+        @keyframes LogoAnimation {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes TitleHintAnimation {
             from { transform: translateX(-100px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        @keyframes SlideDownTitle {
-            from { transform: translateY(-100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+
+        @keyframes HintAnimation {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: .5; }
         }
 
-        @keyframes SlideLeftLogo {
-            from { transform: translateX(100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+
+        @media (max-width: 768px) {
+            #CenterLoadingBlock {
+                width: 80vw;
+            }
+            #ProcessBar {
+                height: 30px;
+            }
+            #ProcessBarFill {
+                height: 28px;
+            }
+            #ProcessBarCharacterIcon {
+                width: 90px;
+                height: 52px;
+            }
         }
     </style>
 </head>
@@ -185,10 +193,8 @@
     <div id="VideoContainer">
         <video id="BackgroundVideo" autoplay muted loop playsinline preload="auto"></video>
         <div id="DarkenedVideo"></div>
-        <img id="PatternOverlay" src="img/pattern_default.png" alt="Pattern">
-        <img id="UpperImage" src="img/kamiko_upper.png" alt="Upper">
-        <img id="LogoImage" src="img/logo.png" alt="Upper">
-
+        <img id="PatternOverlay" src="img/pattern.png" alt="Pattern">
+        <img id="LogoImage" src="img/logo.png">
 
         <div id="FooterBlock">
             <div id="HintTitle">ИНТЕРЕСНЫЕ ФАКТЫ</div>
@@ -200,6 +206,7 @@
             <div id="ProcessBar">
                 <div id="ProcessBarFill"></div>
             </div>
+            <div id="AddonCount"></div>
         </div>
         <img id="ProcessBarCharacterIcon" src="img/tanjiro_icon.png" alt="Tanjiro">
         <audio id="BackgroundMusicAudio" src="sounds/backmusic.mp3" autoplay loop style="display:none"></audio>
@@ -281,7 +288,6 @@
                 pattern.src = c.pattern;
             }
             if (barFill) {
-                /*drop-shadow(<offset-x> <offset-y> <blur-radius> <spread-radius> <color>)*/
                 barFill.style.background = c.barColor;
                 barFill.style.filter = `drop-shadow(0 0 1.5px ${c.DropShadow})`;
             }
@@ -318,6 +324,24 @@
             }, 25);
         }
 
+        function UpdateTanjiroPosition() {
+            const fill = document.getElementById("ProcessBarFill");
+            const icon = document.getElementById("ProcessBarCharacterIcon");
+            if (!fill || !icon) return;
+
+            const fillRect = fill.getBoundingClientRect();
+
+            const iconWidth  = icon.offsetWidth || 126;
+            const iconHeight = icon.offsetHeight || 74;
+
+            const targetX = fillRect.right;
+            const targetY = fillRect.top + fillRect.height / 2;
+
+            icon.style.left = targetX + "px";
+            icon.style.top  = targetY + "px";
+            icon.style.transform = `translate(-${iconWidth / 2}px, -${iconHeight / 2}px)`;
+        }
+
         function UpdateLoadingProgressLine() {
             const ProcessBarFillElement = document.getElementById("ProcessBarFill");
             const ProcessNameElement    = document.getElementById("ProcessName");
@@ -335,6 +359,8 @@
                 ? `Загрузка: ${CurrentAddonName}`
                 : "Подготовка загрузки...";
             AddonCountElement.textContent = `${progressPercent}%`;
+
+            UpdateTanjiroPosition();
         }
 
         window.SetFilesTotal = (TotalAmountValue) => {
@@ -362,6 +388,7 @@
             if (ProcessNameElement) ProcessNameElement.textContent = StatusTextValue;
             const ProcessBarFillElement = document.getElementById("ProcessBarFill");
             if (ProcessBarFillElement) ProcessBarFillElement.style.width = "0%";
+            UpdateTanjiroPosition();
         };
 
         window.onload = () => {
@@ -377,7 +404,13 @@
             setInterval(() => {
                 StartHintTypingText(HintCollectionArray[GetNextUniqueHintIndexValue()]);
             }, 4500);
+
+            UpdateTanjiroPosition();
         };
+
+        window.addEventListener("resize", () => {
+            UpdateTanjiroPosition();
+        });
     </script>
 </body>
 </html>
