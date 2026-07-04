@@ -5,17 +5,17 @@
     <title>Kamiko Loading Screen</title>
     <style>
         @font-face {
-            font-family: 'ExoSemiBold';
-            src: url('fonts/exo2-semibold.ttf') format('truetype');
+            font-family: 'Han-Zi';
+            src: url('fonts/han-zi.ttf') format('truetype');
         }
-        
+
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
             height: 100vh;
             background: #000;
-            font-family: 'ExoSemiBold';
+            font-family: 'Han-Zi';
         }
 
         #VideoContainer {
@@ -37,10 +37,19 @@
             inset: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
             mix-blend-mode: multiply;
-            background: rgba(0, 0, 0, 0.5);
             pointer-events: none;
+        }
+
+        #PatternOverlay {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: 0;
         }
 
         #UpperImage {
@@ -52,19 +61,13 @@
             z-index: 1;
         }
 
-        #HeaderBlock {
-            position: absolute;
-            top: 2.5vh;
-            right: 2.5vw;
-            z-index: 10;
-        }
-
         #LogoImage {
-            width: 82.5px;
-            height: 132px;
-            filter: drop-shadow(0 0 5px rgba(255,174,0,0.5));
-            animation: GlowLogo 1.5s infinite alternate, SlideLeftLogo 1s ease-out forwards;
-            opacity: 0;
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            width: 90px;
+            height: 130px;
+            z-index: 9999;
         }
 
         #FooterBlock {
@@ -79,16 +82,17 @@
             font-size: clamp(16px,1.5vw,20px);
             color: #fff;
             margin-bottom: 1vh;
-            animation: SlideRightTitle 1s ease-out forwards;
+            letter-spacing: .15em;
+            animation: SlideRightTitle .5s ease-out forwards;
             opacity: 0;
         }
 
         #HintText {
             font-size: clamp(12px,1.1vw,16px);
             color: #fff;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-            max-width: 600px;
+            opacity: 0.5;
+            letter-spacing: .15em;
+            max-width: 800px;
         }
 
         #CenterLoadingBlock {
@@ -97,7 +101,7 @@
             left: 50%;
             transform: translate(-50%,-50%);
             z-index: 20;
-            width: 300vw;
+            width: 1050px;
             max-width: 60%;
             min-width: 260px;
             text-align: center;
@@ -113,20 +117,42 @@
         }
 
         #ProcessBar {
-            width: 100%;
-            height: 20px;
+            position: relative;
+            width: 1050px;
+            height: 36.5px;
             border-radius: 8px;
-            background: rgba(255,255,255,.12);
+            background: rgba(0, 0, 0, 0.68);
             overflow: hidden;
+            backdrop-filter: blur(17px);
+            display: flex;
+            align-items: center;
+            padding: 4px;
             box-shadow: 0 0 5px rgba(0,0,0,.7);
+            margin: 0 auto;
         }
 
         #ProcessBarFill {
+            height: 35px;
+            border-radius: 4px;
+            flex: 1 1 auto;
+            background: #948BFE;
             width: 0%;
-            height: 100%;
-            border-radius: inherit;
-            background: linear-gradient(95deg, rgba(148, 139, 254, 1) 0%, rgba(148, 139, 254, 1) 70%, rgba(148, 139, 254, 1), 100%);
-            transition: none;
+            transition: width 0.15s linear;
+            drop-shadow: 0 0 3px rgba(0,0,0,.45)
+        }
+
+        #ProcessBarCharacterIcon {
+            position: absolute;
+            z-index: 999;
+            pointer-events: none;
+            top: 52.5%;
+            transform: translateY(-50%);
+            left: 49.5%;
+
+            margin-left: calc(1050px / 2 - 63px);
+
+            width: 126px;
+            height: 74px;
         }
 
         #AddonCount {
@@ -144,6 +170,10 @@
             from { transform: translateX(-100px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        @keyframes SlideDownTitle {
+            from { transform: translateY(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
 
         @keyframes SlideLeftLogo {
             from { transform: translateX(100px); opacity: 0; }
@@ -153,14 +183,13 @@
 </head>
 <body>
     <div id="VideoContainer">
-        <video id="BackgroundVideo" src="Video/Background.mp4" autoplay muted loop playsinline preload="auto"></video>
+        <video id="BackgroundVideo" autoplay muted loop playsinline preload="auto"></video>
         <div id="DarkenedVideo"></div>
-        <img id="UpperImage" src="img/kamiko_upper.png">
-        
-        <div id="HeaderBlock">
-            <img id="LogoImage" src="img/logo.png">
-        </div>
-        
+        <img id="PatternOverlay" src="img/pattern_default.png" alt="Pattern">
+        <img id="UpperImage" src="img/kamiko_upper.png" alt="Upper">
+        <img id="LogoImage" src="img/logo.png" alt="Upper">
+
+
         <div id="FooterBlock">
             <div id="HintTitle">ИНТЕРЕСНЫЕ ФАКТЫ</div>
             <div id="HintText">Некий Тамерлан-Куки проник в ваш компьютер...</div>
@@ -172,11 +201,42 @@
                 <div id="ProcessBarFill"></div>
             </div>
         </div>
-
+        <img id="ProcessBarCharacterIcon" src="img/tanjiro_icon.png" alt="Tanjiro">
         <audio id="BackgroundMusicAudio" src="sounds/backmusic.mp3" autoplay loop style="display:none"></audio>
     </div>
 
     <script>
+        const Characters = [
+            {
+                name: "Tanjiro",
+                video: "Video/Tanjiro.mp4",
+                pattern: "img/pattern.png",
+                barColor: "linear-gradient(95deg, #FF0048 0%, #FF0048 70%, #99002B 100%)",
+                DropShadow: "#FF0048",
+            },
+            {
+                name: "Zenitsu",
+                video: "Video/Zenitsu.mp4",
+                pattern: "img/pattern.png",
+                barColor: "linear-gradient(95deg, #FFE100 0%, #FFE100 70%, #FEEF80 100%)",
+                DropShadow: "#FFE100",
+            },
+            {
+                name: "Nezuko",
+                video: "Video/Nezuko.mp4",
+                pattern: "img/pattern.png",
+                barColor: "linear-gradient(95deg, #FF0F67 0%, #FF0F67 70%, #FF5292 100%)",
+                DropShadow: "#FF0F67",
+            },
+            {
+                name: "Inosuke",
+                video: "Video/Inosuke.mp4",
+                pattern: "img/pattern.png",
+                barColor: "linear-gradient(95deg, #00C0E8 0%, #00C0E8 70%, #98D3DF 100%)",
+                DropShadow: "#00C0E8",
+            },
+        ];
+
         const HintCollectionArray = [
             "ВСЕ НАШИ РАБОТНИКИ ОТКРЫТЫ К ПРЕДЛОЖЕНИЯМ О РАБОТЕ, НЕ БОЙТЕСЬ ОБРАЩАТЬСЯ К КОМУ-ТО В ЛИЧНЫЕ СООБЩЕНИЯ.",
             "НАСТУПАЕТ НЕКАЯ НОВАЯ ЭРА НА НАШЕМ ПРОЕКТЕ, МЫ ОЧЕНЬ РАДЫ ЛЮБОЙ ПОДДЕРЖКЕ.",
@@ -190,8 +250,42 @@
             'МЫ ПЛАНИРУЕМ РАСШИРЯТЬ НАШУ "ФРАНШИЗУ", ЖДИТЕ БОЛЬШЕ ПРОЕКТОВ ПО РАЗНЫМ ТЕМАТИКАМ'
         ];
 
-        let HintTypingIntervalIdentifierValue = null, FilesTotalAmountValue = 0, FilesNeededAmountValue = 0, CurrentAddonName = "";
-        let HintIndexValue = -1, UsedHintsSet = new Set();
+        let HintTypingIntervalIdentifierValue = null,
+            FilesTotalAmountValue = 0,
+            FilesNeededAmountValue = 0,
+            CurrentAddonName = "";
+
+        let HintIndexValue = -1,
+            UsedHintsSet = new Set();
+
+        let CurrentCharacterIndex = 0;
+
+        function getRandomCharacterIndex() {
+            return Math.floor(Math.random() * Characters.length);
+        }
+
+        function applyCharacterConfig(index) {
+            const c = Characters[index] || Characters[0];
+            CurrentCharacterIndex = index;
+
+            const bgVideo = document.getElementById("BackgroundVideo");
+            const pattern = document.getElementById("PatternOverlay");
+            const barFill = document.getElementById("ProcessBarFill");
+
+            if (bgVideo) {
+                bgVideo.src = c.video;
+                bgVideo.load();
+                bgVideo.play().catch(() => {});
+            }
+            if (pattern) {
+                pattern.src = c.pattern;
+            }
+            if (barFill) {
+                /*drop-shadow(<offset-x> <offset-y> <blur-radius> <spread-radius> <color>)*/
+                barFill.style.background = c.barColor;
+                barFill.style.filter = `drop-shadow(0 0 1.5px ${c.DropShadow})`;
+            }
+        }
 
         function GetNextUniqueHintIndexValue() {
             if (UsedHintsSet.size === HintCollectionArray.length) {
@@ -221,13 +315,13 @@
                     return;
                 }
                 HintTextElement.textContent += NewHintTextValue.charAt(CurrentCharIndexValue++);
-            },25);
+            }, 25);
         }
 
         function UpdateLoadingProgressLine() {
             const ProcessBarFillElement = document.getElementById("ProcessBarFill");
-            const ProcessNameElement = document.getElementById("ProcessName");
-            const AddonCountElement = document.getElementById("AddonCount");
+            const ProcessNameElement    = document.getElementById("ProcessName");
+            const AddonCountElement     = document.getElementById("AddonCount");
             if (!ProcessBarFillElement || !ProcessNameElement || !AddonCountElement) return;
 
             let progress = 0;
@@ -235,9 +329,11 @@
                 progress = 1 - (FilesNeededAmountValue / FilesTotalAmountValue);
             }
             const progressPercent = Math.round(Math.max(0, Math.min(1, progress)) * 100);
+
             ProcessBarFillElement.style.width = progressPercent + "%";
-            
-            ProcessNameElement.textContent = CurrentAddonName ? `Загрузка: ${CurrentAddonName}` : "Подготовка загрузки...";
+            ProcessNameElement.textContent = CurrentAddonName
+                ? `Загрузка: ${CurrentAddonName}`
+                : "Подготовка загрузки...";
             AddonCountElement.textContent = `${progressPercent}%`;
         }
 
@@ -269,11 +365,15 @@
         };
 
         window.onload = () => {
+            const charIndex = getRandomCharacterIndex();
+            applyCharacterConfig(charIndex);
+
             const BackgroundVideoElement = document.getElementById("BackgroundVideo");
-            BackgroundVideoElement.play().catch(() => {});
-            
+            if (BackgroundVideoElement) {
+                BackgroundVideoElement.play().catch(() => {});
+            }
+
             StartHintTypingText(HintCollectionArray[GetNextUniqueHintIndexValue()]);
-            
             setInterval(() => {
                 StartHintTypingText(HintCollectionArray[GetNextUniqueHintIndexValue()]);
             }, 4500);
