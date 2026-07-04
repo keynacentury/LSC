@@ -127,9 +127,9 @@
         #ProcessBarFill {
             height: 35px;
             border-radius: 4px;
-            flex: 1 1 auto;
-            background: #948BFE;
+            flex: 0 0 auto;
             width: 0%;
+            background: #948BFE;
             transition: width 0.15s linear;
             filter: drop-shadow(0 0 3px rgba(0,0,0,.45));
         }
@@ -145,12 +145,6 @@
             transform: translate(-50%, -50%);
         }
 
-        #AddonCount {
-            font-size: clamp(12px,1.1vw,14px);
-            color: rgba(255,255,255,0.7);
-            margin-top: 0.5vh;
-        }
-
         @keyframes GlowLogo {
             from { filter: drop-shadow(0 0 10px rgba(171, 163, 255, 1)); }
             to { filter: drop-shadow(0 0 0px rgba(33,45,44,0)); }
@@ -160,7 +154,7 @@
             from { transform: translateX(100px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        
+
         @keyframes TitleHintAnimation {
             from { transform: translateX(-100px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -170,7 +164,6 @@
             from { transform: translateX(-100px); opacity: 0; }
             to { transform: translateX(0); opacity: .5; }
         }
-
 
         @media (max-width: 768px) {
             #CenterLoadingBlock {
@@ -206,8 +199,8 @@
             <div id="ProcessBar">
                 <div id="ProcessBarFill"></div>
             </div>
-            <div id="AddonCount"></div>
         </div>
+
         <img id="ProcessBarCharacterIcon" src="img/tanjiro_icon.png" alt="Tanjiro">
         <audio id="BackgroundMusicAudio" src="sounds/backmusic.mp3" autoplay loop style="display:none"></audio>
     </div>
@@ -345,8 +338,7 @@
         function UpdateLoadingProgressLine() {
             const ProcessBarFillElement = document.getElementById("ProcessBarFill");
             const ProcessNameElement    = document.getElementById("ProcessName");
-            const AddonCountElement     = document.getElementById("AddonCount");
-            if (!ProcessBarFillElement || !ProcessNameElement || !AddonCountElement) return;
+            if (!ProcessBarFillElement || !ProcessNameElement) return;
 
             let progress = 0;
             if (FilesTotalAmountValue > 0 && FilesNeededAmountValue >= 0) {
@@ -358,7 +350,8 @@
             ProcessNameElement.textContent = CurrentAddonName
                 ? `Загрузка: ${CurrentAddonName}`
                 : "Подготовка загрузки...";
-            AddonCountElement.textContent = `${progressPercent}%`;
+
+            console.log("Loading progress:", progressPercent + "%");
 
             UpdateTanjiroPosition();
         }
@@ -388,6 +381,7 @@
             if (ProcessNameElement) ProcessNameElement.textContent = StatusTextValue;
             const ProcessBarFillElement = document.getElementById("ProcessBarFill");
             if (ProcessBarFillElement) ProcessBarFillElement.style.width = "0%";
+            console.log("Loading progress: 0%");
             UpdateTanjiroPosition();
         };
 
