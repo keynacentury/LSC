@@ -274,6 +274,7 @@
 
             if (bgVideo) {
                 bgVideo.src = c.video;
+                bgVideo.muted = true;
                 bgVideo.load();
                 bgVideo.play().catch(() => {});
             }
